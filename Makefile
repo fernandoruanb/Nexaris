@@ -1,5 +1,5 @@
 # Program name / final executable name
-NAME = Nexaris
+NAME = miniERP
 
 # Compiler used to compile C++ files
 CC = c++
