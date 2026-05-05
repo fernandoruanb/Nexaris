@@ -1,75 +1,66 @@
-# Program name / final executable name
+# Program name / project name
+
 NAME = miniERP
 
-# Compiler used to compile C++ files
-CC = c++
+# .NET command line tool
 
-# Compiler flags:
-# -Wall enables common warnings
-# -Wextra enables extra warnings
-# -Werror treats warnings as errors
+DOTNET = dotnet
 
-CFLAGS = -Wall -Werror -Wextra
+# C# project file
 
-# Directory containing source files
+PROJECT = $(NAME).csproj
 
-SRCDIR = srcs
+# Build configuration
 
-# Directory containing header files
+CONFIG = Debug
 
-INCDIR = includes
+# Publish output directory
 
-# Directory where object files will be stored
-
-OBJDIR = objs
-
-# List of source files used by the project
-
-SRCS_FILES= main.cpp
-
-#To make everything more intelligent instead of to repeat using a lot of SRCDIR as a prefix
-
-SRCS = $(addprefix $(SRCDIR)/, $(SRCS_FILES))
-
-# Convert each source file path into an object file path
-# Example:
-# srcs/main.cpp -> objs/main.o
-
-OBJS = $(SRCS:$(SRCDIR)/%.cpp=$(OBJDIR)/%.o)
+PUBLISH_DIR = publish
 
 # Default rule executed when running "make"
-# It builds the final executable
 
-all: $(NAME)
+all: build
 
-# Rule to create the final executable
-# It links all object files into the program
+# Restore dependencies
 
-$(NAME): $(OBJS)
-	$(CC) $(CFLAGS) -I $(INCDIR) -o $(NAME) $(OBJS)
+restore:
+	$(DOTNET) restore $(PROJECT)
 
-# Rule to compile each .cpp file into a .o file
-# $< means the source file
-# $@ means the target object file
+# Build the project
+# The .csproj automatically includes all .cs files in the project folder
 
-$(OBJDIR)/%.o: $(SRCDIR)/%.cpp
-	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) -I $(INCDIR) -c $< -o $@
+build: restore
+	$(DOTNET) build $(PROJECT) -c $(CONFIG) -p:TreatWarningsAsErrors=true
 
-# Remove object files and the object directory
+# Run the program
+
+run:
+	$(DOTNET) run --project $(PROJECT)
+
+# Build and run the program
+
+exec: build
+	$(DOTNET) run --project $(PROJECT)
+
+# Publish release version
+
+publish:
+	$(DOTNET) publish $(PROJECT) -c Release -o $(PUBLISH_DIR)
+
+# Clean generated build files
 
 clean:
-	rm -rf $(OBJDIR)
+	$(DOTNET) clean $(PROJECT)
+	rm -rf bin obj
 
-# Remove object files and the final executable
+# Full clean
 
 fclean: clean
-	rm -rf $(NAME)
+	rm -rf $(PUBLISH_DIR)
 
-# Rebuild the project from zero
+# Rebuild from zero
 
 re: fclean all
 
-# Declare rules that are not real files
-
-.PHONY: all clean fclean re
+.PHONY: all restore build run exec publish clean fclean re
